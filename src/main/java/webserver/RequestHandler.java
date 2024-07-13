@@ -32,7 +32,7 @@ public class RequestHandler extends Thread {
             while (true) {
                 String s = bufferedReader.readLine();
                 System.out.println(s);
-                if ("".equals(s)) break;
+                if ("".equals(s) || s == null) break;
             }
 
             String[] split = firstHeader.split(" ");
@@ -47,13 +47,16 @@ public class RequestHandler extends Thread {
                 path = url;
             }
 
+            String ContentType = "";
 
             DataOutputStream dos = new DataOutputStream(out);
             byte[] body = new byte[0];
             if (path.equals("/index.html")) {
                 body = Files.readAllBytes(new File("./webapp/index.html").toPath());
+                ContentType = "text/html;charset=utf-8";
             } else if (path.equals("/user/form.html")) {
                 body = Files.readAllBytes(new File("./webapp/user/form.html").toPath());
+                ContentType = "text/html;charset=utf-8";
             } else if (path.equals("/user/create")) {
                 Map<String, String> parseQueryString = HttpRequestUtils.parseQueryString(queryString);
                 User user = new User(
@@ -63,20 +66,37 @@ public class RequestHandler extends Thread {
                         parseQueryString.get("email")
                 );
                 System.out.println(user);
+                ContentType = "text/html;charset=utf-8";
+            } else if (path.equals("/css/styles.css")) {
+                body = Files.readAllBytes(new File("./webapp/css/styles.css").toPath());
+                ContentType = "text/css;";
+            } else if (path.equals("/css/bootstrap.min.css")) {
+                body = Files.readAllBytes(new File("./webapp/css/bootstrap.min.css").toPath());
+                ContentType = "text/css;";
+            } else if (path.equals("/js/bootstrap.min.js")) {
+                body = Files.readAllBytes(new File("./webapp/js/bootstrap.min.js").toPath());
+                ContentType = "text/javascript;";
+            } else if (path.equals("/js/jquery-2.2.0.min.js")) {
+                body = Files.readAllBytes(new File("./webapp/js/jquery-2.2.0.min.js").toPath());
+                ContentType = "text/javascript;";
+            } else if (path.equals("/js/scripts.js")) {
+                body = Files.readAllBytes(new File("./webapp/js/scripts.js").toPath());
+                ContentType = "text/javascript;";
             } else {
                 body = "Hello World".getBytes();
+                ContentType = "text/html;charset=utf-8";
             }
-            response200Header(dos, body.length);
+            response200Header(dos, body.length, ContentType);
             responseBody(dos, body);
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
+    private void response200Header(DataOutputStream dos, int lengthOfBodyContent, String ContentType) {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+            dos.writeBytes("Content-Type: " + ContentType + "\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
