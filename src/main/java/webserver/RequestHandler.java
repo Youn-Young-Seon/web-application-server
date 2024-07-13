@@ -82,6 +82,9 @@ public class RequestHandler extends Thread {
             } else if (path.equals("/js/scripts.js")) {
                 body = Files.readAllBytes(new File("./webapp/js/scripts.js").toPath());
                 ContentType = "text/javascript;";
+            } else if (path.equals("/favicon.ico")) {
+                body = Files.readAllBytes(new File("./webapp/favicon.ico").toPath());
+                ContentType = "image/x-icon;";
             } else {
                 body = "Hello World".getBytes();
                 ContentType = "text/html;charset=utf-8";
