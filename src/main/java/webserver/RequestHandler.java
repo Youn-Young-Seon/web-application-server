@@ -3,9 +3,12 @@ package webserver;
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.util.Map;
 
+import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.HttpRequestUtils;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -24,6 +27,7 @@ public class RequestHandler extends Thread {
             // TODO 사용자 요청에 대한 처리는 이 곳에 구현하면 된다.
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
             String firstHeader = bufferedReader.readLine();
+            System.out.println(firstHeader);
 
             while (true) {
                 String s = bufferedReader.readLine();
@@ -32,19 +36,38 @@ public class RequestHandler extends Thread {
             }
 
             String[] split = firstHeader.split(" ");
-            String path = split[1];
+            String url = split[1];
+            int index = url.indexOf("?");
+            String path = "";
+            String queryString = "";
+            if (index != -1) {
+                path = url.substring(0, index);
+                queryString = url.substring(index + 1);
+            } else {
+                path = url;
+            }
+
 
             DataOutputStream dos = new DataOutputStream(out);
-            byte[] body;
+            byte[] body = new byte[0];
             if (path.equals("/index.html")) {
                 body = Files.readAllBytes(new File("./webapp/index.html").toPath());
-                response200Header(dos, body.length);
-                responseBody(dos, body);
+            } else if (path.equals("/user/form.html")) {
+                body = Files.readAllBytes(new File("./webapp/user/form.html").toPath());
+            } else if (path.equals("/user/create")) {
+                Map<String, String> parseQueryString = HttpRequestUtils.parseQueryString(queryString);
+                User user = new User(
+                        parseQueryString.get("userId"),
+                        parseQueryString.get("password"),
+                        parseQueryString.get("name"),
+                        parseQueryString.get("email")
+                );
+                System.out.println(user);
             } else {
                 body = "Hello World".getBytes();
-                response200Header(dos, body.length);
-                responseBody(dos, body);
             }
+            response200Header(dos, body.length);
+            responseBody(dos, body);
         } catch (IOException e) {
             log.error(e.getMessage());
         }
